@@ -6,9 +6,8 @@ public class Physics_Controller : MonoBehaviour
 {
     [SerializeField]Physics_Sphere[] Spheres = new Physics_Sphere[10];
     [SerializeField]Physics_Plane[] Planes = new Physics_Plane[10];
-    [SerializeField] bool SphereToStationarySphere;
-    [SerializeField] bool SphereToPlane;
-    [SerializeField] bool MovingSphereToMovingSphere;
+    [Range(0f,3f)]
+    [SerializeField] int CollisionType;
     float DotProduct(Vector3 a, Vector3 b)
     {
         return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
@@ -18,43 +17,18 @@ public class Physics_Controller : MonoBehaviour
         return Mathf.Sqrt(Mathf.Pow(a.x, 2) + Mathf.Pow(a.y, 2) + Mathf.Pow(a.z, 2));
     }
 
-    Vector3 AddFloat(Vector3 a, float b)
+    Vector3 GetDistances(Physics_Sphere ball1, Physics_Sphere ball2)
     {
-        Vector3 c;
-        c.x = a.x + b;
-        c.y = a.y + b;
-        c.z = a.z + b;
-        return c;
+        Vector3 Ball1Location = ball1.GetLocation();
+        Vector3 Ball2Location = ball2.GetLocation();
+        return Ball1Location - Ball2Location;  
     }
 
-    bool EqualToOrLessThanNegative(Vector3 a, Vector3 b)
+    float GetSumOFRadii(Physics_Sphere ball1, Physics_Sphere ball2)
     {
-        float x = a.x - b.x;
-        float y = a.y - b.y;
-        float z = a.z - b.z;
-        if (x > 0) return false;
-        if (y > 0) return false;
-        if (z > 0) return false;
-        return true;
-    }
-
-    bool EqualToOrLessThanPositve(Vector3 a, Vector3 b)
-    {
-        float x = a.x + b.x;
-        float y = a.y + b.y;
-        float z = a.z + b.z;
-        if (x > 0) return false;
-        if (y > 0) return false;
-        if (z > 0) return false;
-        return true;
-    }
-
-    bool TestNegative(Vector3 a)
-    {
-        if (a.x < 0) return true;
-        if (a.y < 0) return true;
-        if (a.z < 0) return true;
-        return false;
+        float RadiiBall1 = ball1.Radius;
+        float RadiiBall2 = ball2.Radius;
+        return RadiiBall1 + RadiiBall2;
     }
 
     // Start is called before the first frame update
@@ -66,88 +40,89 @@ public class Physics_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(SphereToStationarySphere) Collision(Spheres[0], Spheres[1]);
+        switch (CollisionType)
+        {
+            case 1:
+                CollisionStationarySphere(Spheres[0], Spheres[1]);
+                break;
+
+            case 2:
+                CollisionPlane(Spheres[0], Planes[0]);
+                break;
+
+            case 3:
+                CollisionMovingSphere(Spheres[0], Spheres[1]);
+                break;
+
+            default:
+                Debug.LogError("You forgot to put a number for what type of collision is going on baka");
+                break;
+        }
+
+    }
+    void CollisionMovingSphere(Physics_Sphere ball1, Physics_Sphere ball2)
+    {
 
     }
 
-
-    void Collision(Physics_Sphere ball1, Physics_Sphere ball2)
+    void CollisionPlane(Physics_Sphere ball, Physics_Plane Plane)
     {
-        Vector3 Ball1Location = ball1.GetLocation();
-        Vector3 Ball2Location = ball2.GetLocation();
-        Vector3 LengthA = Ball1Location - Ball2Location;
-        Debug.Log(" Hello: " + LengthA);
+        Vector3 BallLocation = ball.GetLocation();
+        Vector3 PlaneLocation = Plane.GetLocation();
+        Vector3 DistanceBetweenBallAndPlane = PlaneLocation - BallLocation;
 
-        float RadiiBall1 = ball1.Radius;//ball1->GetRadius();
-        float RadiiBall2 = ball2.Radius;// ball2->GetRadius();
-        float SumOfRadii = RadiiBall1 + RadiiBall2;
-
-        Vector3 LengthV = ball1.Velocity;
-
-        Vector3 TestA = LengthA;
-
-        bool TestB;
-
-        bool IsNegative = TestNegative(LengthV);
-
-        //if (IsNegative)
-        //{
-        //    float NegitiveRadii = SumOfRadii * -1;
-
-        //    Vector3 TestV = AddFloat(LengthV, NegitiveRadii);
-
-        //    TestB = EqualToOrLessThanPositve(TestA, TestV);
-        //}
-        //else
-        //{
-        //    TestA = TestA * -1;
-
-        //    Vector3 TestV = AddFloat(LengthV, SumOfRadii);
-
-        //    TestB = EqualToOrLessThanNegative(TestA, TestV);
-        //}
+        float Radius = ball.Radius;
+        float Normal = Plane.GetPlaneNormal();
+    }
 
 
-        TestB = true;
-        if (TestB)
-        {
+    void CollisionStationarySphere(Physics_Sphere ball1, Physics_Sphere ball2)
+    {
+        //getting the two balls locations then seeing how far they are from each other.
+        Vector3 DistanceBetweenBalls = GetDistances(ball1, ball2);
+        Debug.Log(" Hello: " + DistanceBetweenBalls);
 
-            Debug.Log("No collision1");
+        //getting balls radius and then adding them together to get min distance for collision.
+        float SumOfRadii = GetSumOFRadii(ball1, ball2);
 
-            float AngleQ = Mathf.Acos(DotProduct(LengthV, LengthA) / (TheLengthOfVector(LengthV) * TheLengthOfVector(LengthA)));
+        //gets the moving balls velocity.
+        Vector3 MovingBallVelocity = ball1.Velocity;
 
-            //float AngleQ = DotProduct(LengthV, LengthA) / (TheLengthOfVector(LengthV) * TheLengthOfVector(LengthA));
-            //AngleQ = Mathf.Cos(AngleQ);
+        Debug.Log("Code working");
 
-            AngleQ = (AngleQ / 180 * Mathf.PI);
+        //calculating the angle between the distance between the two balls and the moving balls velocity.
+        float AngleBetweenDistanceAndVelocity = Mathf.Acos(DotProduct(MovingBallVelocity, DistanceBetweenBalls) / (TheLengthOfVector(MovingBallVelocity) * TheLengthOfVector(DistanceBetweenBalls)));
 
-            float LengthD = Mathf.Sin(AngleQ) * TheLengthOfVector(LengthA);
+        //Degrees to radians
+        AngleBetweenDistanceAndVelocity = (AngleBetweenDistanceAndVelocity * (Mathf.PI / 180));
 
+        //Getting the shortest distance between the balls.
+        float ShortestDistanceThisFrame = Mathf.Sin(AngleBetweenDistanceAndVelocity) * TheLengthOfVector(DistanceBetweenBalls);
 
-            if (LengthD > SumOfRadii)
-            {
-                    //Ball1Location = Ball1Location + LengthV;
-                Debug.Log("No collision2");
-            }
-            else
-            {
-                Debug.Log("No collision3");
-                float LengthE = Mathf.Sqrt(Mathf.Pow((RadiiBall1 + RadiiBall2), 2) - Mathf.Pow(LengthD, 2));
-
-                float LengthVc = Mathf.Cos(AngleQ) * TheLengthOfVector(LengthA) - LengthE;
-
-                Vector3 LengthOfVc = LengthV / TheLengthOfVector(LengthV) * LengthVc;
-
-                if(Mathf.Abs(LengthVc) < Mathf.Abs(TheLengthOfVector(LengthV * Time.fixedDeltaTime)))
-                {
-                    ball1.Velocity = Vector3.zero;
-                }
-                
-                //Ball1Location = Ball1Location + LengthOfVc;
-
-                //ball1.Velocity = LengthOfVc;
-
-            }
+        //If shortest distance is bigger then the max distance for collision then there is no collision possible. 
+        if (ShortestDistanceThisFrame > SumOfRadii) 
+        { 
+            Debug.Log("No collision"); 
+            return; 
         }
+
+        Debug.Log("Collision possible");
+        //Excess velocity.
+        float ExcessVelocity = Mathf.Sqrt(Mathf.Pow((ball1.Radius + ball2.Radius), 2) - Mathf.Pow(ShortestDistanceThisFrame, 2));
+
+        //Velocity with out excess.
+        float VelocityNeedToHitBall = Mathf.Cos(AngleBetweenDistanceAndVelocity) * TheLengthOfVector(DistanceBetweenBalls) - ExcessVelocity;
+
+        //Velocity needed to hit ball
+        Vector3 VelocityToHitBallVector = MovingBallVelocity / TheLengthOfVector(MovingBallVelocity) * VelocityNeedToHitBall;
+
+        //checks to see if Velocity of ball is more then the Velocity need to hit ball == ball collide.
+        if (Mathf.Abs(VelocityNeedToHitBall) < Mathf.Abs(TheLengthOfVector(MovingBallVelocity * Time.fixedDeltaTime))) 
+        { 
+            //Does aftermath code from balls colliding.
+            ball1.Velocity = Vector3.zero; 
+            Debug.Log("Collision");  
         }
+     
+    }
 }
