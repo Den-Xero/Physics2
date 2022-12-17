@@ -12,7 +12,7 @@ public class Physics_Sphere : MonoBehaviour
 
     public Vector3 GetLocation()
     {
-        return this.transform.position;
+        return transform.position;
     }
 
 
@@ -29,6 +29,6 @@ public class Physics_Sphere : MonoBehaviour
         float Delta = Time.deltaTime;
         Velocity += Acceleration * Delta;
 
-        this.transform.position += Velocity * Delta;
+        transform.position += Velocity * Delta;
     }
 }

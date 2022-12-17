@@ -68,34 +68,46 @@ public class Physics_Controller : MonoBehaviour
     void CollisionPlane(Physics_Sphere ball, Physics_Plane Plane)
     {
         Vector3 BallLocation = ball.GetLocation();
-        Vector3 ArbitraryPoint = Plane.P1;
+        Vector3 ArbitraryPoint = Plane.GetP1Pos();
         Vector3 PlaneLocation = Plane.GetLocation();
         Vector3 DistanceBetweenBallAndPlane = ArbitraryPoint - BallLocation;
 
         Vector3 BallVelocity = ball.Velocity;
         float Radius = ball.Radius;
-        Vector3 Normal = Plane.Normal;
+        Vector3 Normal = Plane.GetNormal();
 
-        float AngleBetweenVelocityAndNegNormal = Mathf.Acos(DotProduct(-Normal, BallVelocity) / (TheLengthOfVector(-Normal) * TheLengthOfVector(BallVelocity)));
-        AngleBetweenVelocityAndNegNormal = (AngleBetweenVelocityAndNegNormal * (Mathf.PI / 180));
+        float AngleBetweenVelocityAndNegNormal = Mathf.Acos(DotProduct(-Normal, BallVelocity.normalized));
+        AngleBetweenVelocityAndNegNormal = (AngleBetweenVelocityAndNegNormal * (180 / Mathf.PI));
 
-        if (AngleBetweenVelocityAndNegNormal > 89) return;
+        Debug.Log("Angle0: " + AngleBetweenVelocityAndNegNormal);
 
-        Debug.Log("Heading to plane " + AngleBetweenVelocityAndNegNormal);
+        if (AngleBetweenVelocityAndNegNormal < -180 && AngleBetweenVelocityAndNegNormal > 180) return;
 
-        float AngleBetweennormalAndBall = Mathf.Acos(DotProduct(Normal, DistanceBetweenBallAndPlane) / (TheLengthOfVector(Normal) * TheLengthOfVector(DistanceBetweenBallAndPlane)));
-        AngleBetweennormalAndBall = (AngleBetweennormalAndBall * (Mathf.PI / 180));
+        Debug.Log("Heading to plane");
 
-        float AngleBetweenPlaneAndPoint = Mathf.Acos(DotProduct(PlaneLocation, DistanceBetweenBallAndPlane) / (TheLengthOfVector(PlaneLocation) * TheLengthOfVector(DistanceBetweenBallAndPlane)));
-        AngleBetweenPlaneAndPoint = (AngleBetweenPlaneAndPoint * (Mathf.PI / 180));
 
-        float ClosestDistanceBetweenSphereAndPlane = Mathf.Sin(AngleBetweenPlaneAndPoint) * TheLengthOfVector(DistanceBetweenBallAndPlane);
+        float AngleBetweenNormalAndBall = Mathf.Acos(DotProduct(Normal, DistanceBetweenBallAndPlane.normalized));
+        AngleBetweenNormalAndBall *= (180 / Mathf.PI);
 
-        float VelocityNeeded = (ClosestDistanceBetweenSphereAndPlane - Radius) / Mathf.Cos(AngleBetweenVelocityAndNegNormal);
+        Debug.Log("Angle1: " + AngleBetweenNormalAndBall);
 
+        float AngleBetweenPlaneAndDistance = Mathf.Acos(DotProduct(PlaneLocation.normalized, DistanceBetweenBallAndPlane.normalized));
+        AngleBetweenPlaneAndDistance *= (180 / Mathf.PI);
+
+        Debug.Log("Angle2: " + AngleBetweenPlaneAndDistance);
+
+        if (AngleBetweenNormalAndBall + AngleBetweenPlaneAndDistance != 90) Debug.LogError("Failed to make 90");
+
+        float ClosestDistanceBetweenSphereAndPlane = Mathf.Sin(AngleBetweenPlaneAndDistance) * TheLengthOfVector(DistanceBetweenBallAndPlane);
+
+
+        float VelocityNeeded = (ClosestDistanceBetweenSphereAndPlane - Radius ) / Mathf.Cos(AngleBetweenVelocityAndNegNormal);
+
+        //Velocity with out excess.
+        float VelocityNeedToHitBall = Mathf.Cos(AngleBetweenVelocityAndNegNormal) * TheLengthOfVector(DistanceBetweenBallAndPlane) - VelocityNeeded;
 
         //checks to see if Velocity need is less then the Velocity of the ball, if soo ball collides.
-        if (Mathf.Abs(VelocityNeeded) < Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)))
+        if (Mathf.Abs(VelocityNeedToHitBall) < Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)))
         {
             //Velocity needed to hit plane
             Vector3 VelocityToHitBallVector = BallVelocity / TheLengthOfVector(BallVelocity) * VelocityNeeded;
@@ -126,7 +138,7 @@ public class Physics_Controller : MonoBehaviour
         float AngleBetweenDistanceAndVelocity = Mathf.Acos(DotProduct(MovingBallVelocity, DistanceBetweenBalls) / (TheLengthOfVector(MovingBallVelocity) * TheLengthOfVector(DistanceBetweenBalls)));
 
         //Degrees to radians
-        AngleBetweenDistanceAndVelocity = (AngleBetweenDistanceAndVelocity * (Mathf.PI / 180));
+        AngleBetweenDistanceAndVelocity *= (Mathf.PI / 180);
 
         //Getting the shortest distance between the balls.
         float ShortestDistanceThisFrame = Mathf.Sin(AngleBetweenDistanceAndVelocity) * TheLengthOfVector(DistanceBetweenBalls);
