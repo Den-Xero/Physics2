@@ -68,11 +68,43 @@ public class Physics_Controller : MonoBehaviour
     void CollisionPlane(Physics_Sphere ball, Physics_Plane Plane)
     {
         Vector3 BallLocation = ball.GetLocation();
+        Vector3 ArbitraryPoint = Plane.P1;
         Vector3 PlaneLocation = Plane.GetLocation();
-        Vector3 DistanceBetweenBallAndPlane = PlaneLocation - BallLocation;
+        Vector3 DistanceBetweenBallAndPlane = ArbitraryPoint - BallLocation;
 
+        Vector3 BallVelocity = ball.Velocity;
         float Radius = ball.Radius;
-        float Normal = Plane.GetPlaneNormal();
+        Vector3 Normal = Plane.Normal;
+
+        float AngleBetweenVelocityAndNegNormal = Mathf.Acos(DotProduct(-Normal, BallVelocity) / (TheLengthOfVector(-Normal) * TheLengthOfVector(BallVelocity)));
+        AngleBetweenVelocityAndNegNormal = (AngleBetweenVelocityAndNegNormal * (Mathf.PI / 180));
+
+        if (AngleBetweenVelocityAndNegNormal > 89) return;
+
+        Debug.Log("Heading to plane " + AngleBetweenVelocityAndNegNormal);
+
+        float AngleBetweennormalAndBall = Mathf.Acos(DotProduct(Normal, DistanceBetweenBallAndPlane) / (TheLengthOfVector(Normal) * TheLengthOfVector(DistanceBetweenBallAndPlane)));
+        AngleBetweennormalAndBall = (AngleBetweennormalAndBall * (Mathf.PI / 180));
+
+        float AngleBetweenPlaneAndPoint = Mathf.Acos(DotProduct(PlaneLocation, DistanceBetweenBallAndPlane) / (TheLengthOfVector(PlaneLocation) * TheLengthOfVector(DistanceBetweenBallAndPlane)));
+        AngleBetweenPlaneAndPoint = (AngleBetweenPlaneAndPoint * (Mathf.PI / 180));
+
+        float ClosestDistanceBetweenSphereAndPlane = Mathf.Sin(AngleBetweenPlaneAndPoint) * TheLengthOfVector(DistanceBetweenBallAndPlane);
+
+        float VelocityNeeded = (ClosestDistanceBetweenSphereAndPlane - Radius) / Mathf.Cos(AngleBetweenVelocityAndNegNormal);
+
+
+        //checks to see if Velocity need is less then the Velocity of the ball, if soo ball collides.
+        if (Mathf.Abs(VelocityNeeded) < Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)))
+        {
+            //Velocity needed to hit plane
+            Vector3 VelocityToHitBallVector = BallVelocity / TheLengthOfVector(BallVelocity) * VelocityNeeded;
+
+            ball.Velocity = Vector3.zero;
+            Debug.Log("Collision");
+        }
+
+
     }
 
 
@@ -113,12 +145,13 @@ public class Physics_Controller : MonoBehaviour
         //Velocity with out excess.
         float VelocityNeedToHitBall = Mathf.Cos(AngleBetweenDistanceAndVelocity) * TheLengthOfVector(DistanceBetweenBalls) - ExcessVelocity;
 
-        //Velocity needed to hit ball
-        Vector3 VelocityToHitBallVector = MovingBallVelocity / TheLengthOfVector(MovingBallVelocity) * VelocityNeedToHitBall;
 
-        //checks to see if Velocity of ball is more then the Velocity need to hit ball == ball collide.
+        //checks to see if Velocity need is less then the Velocity of the ball, if soo ball collides.
         if (Mathf.Abs(VelocityNeedToHitBall) < Mathf.Abs(TheLengthOfVector(MovingBallVelocity * Time.fixedDeltaTime))) 
-        { 
+        {
+            //Velocity needed to hit ball
+            Vector3 VelocityToHitBallVector = MovingBallVelocity / TheLengthOfVector(MovingBallVelocity) * VelocityNeedToHitBall;
+
             //Does aftermath code from balls colliding.
             ball1.Velocity = Vector3.zero; 
             Debug.Log("Collision");  
