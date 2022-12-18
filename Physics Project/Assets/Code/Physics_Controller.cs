@@ -114,19 +114,19 @@ public class Physics_Controller : MonoBehaviour
     {
         Vector3 BallLocation = ball.GetLocation();
         Vector3 ArbitraryPoint = Plane.GetP1Pos();
-        Vector3 PlaneLocation = Plane.GetLocation();
-        Vector3 DistanceBetweenBallAndPlane = ArbitraryPoint - BallLocation;
+        //Vector3 PlaneLocation = Plane.GetLocation();
+        Vector3 DistanceBetweenBallAndPlane = BallLocation  - ArbitraryPoint;
 
         Vector3 BallVelocity = ball.Velocity;
         float Radius = ball.Radius;
         Vector3 Normal = Plane.GetNormal();
 
         float AngleBetweenVelocityAndNegNormal = Mathf.Acos(DotProduct(-Normal, BallVelocity) / (TheLengthOfVector(-Normal) * TheLengthOfVector(BallVelocity)));
-        AngleBetweenVelocityAndNegNormal = (AngleBetweenVelocityAndNegNormal * (180 / Mathf.PI));
+        AngleBetweenVelocityAndNegNormal *= (180 / Mathf.PI);
 
         Debug.Log("Angle0: " + AngleBetweenVelocityAndNegNormal);
 
-        if (AngleBetweenVelocityAndNegNormal < -180 && AngleBetweenVelocityAndNegNormal > 180) return;
+        if (AngleBetweenVelocityAndNegNormal > 90) return;
 
         Debug.Log("Heading to plane");
 
@@ -149,7 +149,7 @@ public class Physics_Controller : MonoBehaviour
 
         Debug.Log("Closest: " + ClosestDistanceBetweenSphereAndPlane);
 
-        //if (ClosestDistanceBetweenSphereAndPlane > Radius)
+        //if (Mathf.Abs(ClosestDistanceBetweenSphereAndPlane) > Radius)
         //{
         //    Debug.Log("No collision");
         //    return;
@@ -165,7 +165,7 @@ public class Physics_Controller : MonoBehaviour
         Debug.Log("Velocity Needed to hit: " + VelocityNeedToHitBall);
 
         //checks to see if Velocity need is less then the Velocity of the ball, if soo ball collides.
-        if (Mathf.Abs(VelocityNeedToHitBall) < Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)))
+        if (Mathf.Abs(VelocityNeedToHitBall) <= Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)))
         {
             //Velocity needed to hit plane
             Vector3 VelocityToHitBallVector = BallVelocity / TheLengthOfVector(BallVelocity) * VelocityNeeded;
