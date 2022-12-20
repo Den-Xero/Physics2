@@ -107,26 +107,27 @@ public class Physics_Controller : MonoBehaviour
         float Deltazv = Ball1Velocity.z - Ball2Velocity.z;
 
 
-        float A = Mathf.Pow(Mathf.Abs(Deltaxv), 2) + Mathf.Pow(Mathf.Abs(Deltayv), 2) + Mathf.Pow(Mathf.Abs(Deltazv), 2);
-        float B = 2 * Mathf.Abs(Deltaxp) * Mathf.Abs(Deltaxv) + 2 * Mathf.Abs(Deltayp) * Mathf.Abs(Deltayv) + 2 * Mathf.Abs(Deltazp) * Mathf.Abs(Deltazv);
-        float C = Mathf.Pow(Mathf.Abs(Deltaxp), 2) + Mathf.Pow(Mathf.Abs(Deltayp), 2) + Mathf.Pow(Mathf.Abs(Deltazp), 2) - Mathf.Pow(Mathf.Abs(SumOfRadii), 2);
+        float A = Deltaxv * Deltaxv + Deltayv * Deltayv + Deltazv * Deltazv;//100
+        float B = (2 * Mathf.Abs(Deltaxp) * Mathf.Abs(Deltaxv)) + (2 * Mathf.Abs(Deltayp) * Mathf.Abs(Deltayv)) + (2 * Mathf.Abs(Deltazp) * Mathf.Abs(Deltazv));//1000
+        float C = Deltaxp * Deltaxp + Deltayp * Deltayp + Deltazp * Deltazp - SumOfRadii * SumOfRadii;//2488
 
         Debug.Log("A: " + A);
         Debug.Log("B: " + B);
         Debug.Log("C: " + C);
 
+        float SqrtPart = (B * B) - (4 * A * C);
 
-        if(4 * A * C > Mathf.Pow(B, 2))
+        if (SqrtPart < 0)
         {
             Debug.Log("No Real Values will be made");
             return;
         }
 
-        float t1 = -B + Mathf.Sqrt(Mathf.Pow(B, 2) - 4 * A * C) / 2 * A;
-        float t2 = -B - Mathf.Sqrt(Mathf.Pow(B, 2) - 4 * A * C) / 2 * A;
+        float t1 = (-B + Mathf.Sqrt(SqrtPart)) / (2 * A);//-4.6538
+        float t2 = (-B - Mathf.Sqrt(SqrtPart)) / (2 * A);//-5.3464
 
 
-        if(t1 > 1 || t1 < 0 || t2 > 1 || t2 < 0)
+        if (t1 > 1 || t1 < 0 && t2 > 1 || t2 < 0)
         {
             Debug.Log("Out of range, no collision");
             Debug.Log("t1: " + t1);
@@ -140,15 +141,15 @@ public class Physics_Controller : MonoBehaviour
             return;
         }
 
-        float CollisionNextFrame;
+        float CollisionNextFrame = 0;
 
-        if (t1 < t2)
+        if (t1 < t2 && t1 > 0 && t1 < 1)
         {
             //|(Ball1Location + t1 * Ball1Velocity) - (Ball2Location + t1 * Ball2Velocity)| = SumOfRadii;
             CollisionNextFrame = (TheLengthOfVector(Ball1Location) + TheLengthOfVector(Ball1Velocity) * t1) - (TheLengthOfVector(Ball2Location) + TheLengthOfVector(Ball2Velocity) * t1);
 
         }
-        else
+        else if(t2 > 0 && t2 < 1)
         {
             //|(Ball1Location + t2 * Ball1Velocity) - (Ball2Location + t2 * Ball2Velocity)| = SumOfRadii;
             CollisionNextFrame = (TheLengthOfVector(Ball1Location) + TheLengthOfVector(Ball1Velocity) * t2) - (TheLengthOfVector(Ball2Location) + TheLengthOfVector(Ball2Velocity) * t2);
