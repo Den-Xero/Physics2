@@ -123,8 +123,8 @@ public class Physics_Controller : MonoBehaviour
             return;
         }
 
-        float t1 = (-B + Mathf.Sqrt(SqrtPart)) / (2 * A);//-4.6538
-        float t2 = (-B - Mathf.Sqrt(SqrtPart)) / (2 * A);//-5.3464
+        float t1 = (-B + Mathf.Sqrt(SqrtPart)) / (2 * A);//-4.6538 to -0.5024
+        float t2 = (-B - Mathf.Sqrt(SqrtPart)) / (2 * A);//-5.3464 to -1.3165
 
 
         if (t1 > 1 || t1 < 0 && t2 > 1 || t2 < 0)
@@ -175,7 +175,7 @@ public class Physics_Controller : MonoBehaviour
 
 
 
-        Debug.Log("Code working");
+        //Debug.Log("Code working");
 
         //calculating the angle between the distance between the two balls and the moving balls velocity.
         //float AngleBetweenDistanceAndVelocity = Mathf.Acos(DotProduct(MovingBallVelocity, DistanceBetweenBalls) / (TheLengthOfVector(MovingBallVelocity) * TheLengthOfVector(DistanceBetweenBalls)));
@@ -193,7 +193,7 @@ public class Physics_Controller : MonoBehaviour
         //    return;
         //}
 
-        Debug.Log("Collision possible");
+       //Debug.Log("Collision possible");
         //Excess velocity.
         //float ExcessVelocity = Mathf.Sqrt(Mathf.Pow((ball1.Radius + ball2.Radius), 2) - Mathf.Pow(ShortestDistanceThisFrame, 2));
 
