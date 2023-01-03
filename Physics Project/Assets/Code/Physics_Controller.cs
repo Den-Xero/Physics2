@@ -107,9 +107,9 @@ public class Physics_Controller : MonoBehaviour
         float Deltazv = Ball1Velocity.z - Ball2Velocity.z;
 
 
-        float A = Deltaxv * Deltaxv + Deltayv * Deltayv + Deltazv * Deltazv;//100
+        float A = (Deltaxv * Deltaxv) + (Deltayv * Deltayv) + (Deltazv * Deltazv);//100
         float B = (2 * Mathf.Abs(Deltaxp) * Mathf.Abs(Deltaxv)) + (2 * Mathf.Abs(Deltayp) * Mathf.Abs(Deltayv)) + (2 * Mathf.Abs(Deltazp) * Mathf.Abs(Deltazv));//1000
-        float C = Deltaxp * Deltaxp + Deltayp * Deltayp + Deltazp * Deltazp - SumOfRadii * SumOfRadii;//2488
+        float C = (Deltaxp * Deltaxp) + (Deltayp * Deltayp) + (Deltazp * Deltazp) - (SumOfRadii * SumOfRadii);//2488
 
         Debug.Log("A: " + A);
         Debug.Log("B: " + B);
@@ -123,7 +123,7 @@ public class Physics_Controller : MonoBehaviour
             return;
         }
 
-        float t1 = (-B + Mathf.Sqrt(SqrtPart)) / (2 * A);//-4.6538 to -0.5024
+        float t1 = (-B + Mathf.Sqrt(SqrtPart)) / (2 * A);//-4.6538 to 0.05024
         float t2 = (-B - Mathf.Sqrt(SqrtPart)) / (2 * A);//-5.3464 to -1.3165
 
 
