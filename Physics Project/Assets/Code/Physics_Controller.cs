@@ -8,6 +8,7 @@ public class Physics_Controller : MonoBehaviour
     [SerializeField]Physics_Plane[] Planes = new Physics_Plane[10];
     [Range(0f,3f)]
     [SerializeField] int CollisionType;
+    bool Stop = false;
     float DotProduct(Vector3 a, Vector3 b)
     {
         return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
@@ -52,6 +53,8 @@ public class Physics_Controller : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Stop) return;
+
         switch (CollisionType)
         {
             case 1:
@@ -106,10 +109,20 @@ public class Physics_Controller : MonoBehaviour
         float Deltayv = Ball1Velocity.y - Ball2Velocity.y;
         float Deltazv = Ball1Velocity.z - Ball2Velocity.z;
 
+        // Calculate the relative velocity between the two spheres
+        Vector3 relativeVelocity = Ball1Velocity - Ball2Velocity;
 
-        float A = (Deltaxv * Deltaxv) + (Deltayv * Deltayv) + (Deltazv * Deltazv);//100
-        float B = (2 * Mathf.Abs(Deltaxp) * Mathf.Abs(Deltaxv)) + (2 * Mathf.Abs(Deltayp) * Mathf.Abs(Deltayv)) + (2 * Mathf.Abs(Deltazp) * Mathf.Abs(Deltazv));//1000
-        float C = (Deltaxp * Deltaxp) + (Deltayp * Deltayp) + (Deltazp * Deltazp) - (SumOfRadii * SumOfRadii);//2488
+        // Calculate the relative position between the two spheres
+        Vector3 relativePosition = Ball1Location - Ball2Location;
+
+
+        //float A = (Deltaxv * Deltaxv) + (Deltayv * Deltayv) + (Deltazv * Deltazv);//100
+        //float B = (2 * Deltaxp * Deltaxv) + (2 * Deltayp * Deltayv) + (2 * Deltazp * Deltazv);//1000
+        //float C = (Deltaxp * Deltaxp) + (Deltayp * Deltayp) + (Deltazp * Deltazp) - (SumOfRadii * SumOfRadii);//2488
+
+        float A = DotProduct(relativeVelocity, relativeVelocity);
+        float B = DotProduct(relativeVelocity * 2, relativePosition * 2);
+        float C = DotProduct(relativePosition, relativePosition) - (SumOfRadii * SumOfRadii);
 
         Debug.Log("A: " + A);
         Debug.Log("B: " + B);
@@ -117,7 +130,7 @@ public class Physics_Controller : MonoBehaviour
 
         float SqrtPart = (B * B) - (4 * A * C);
 
-        if (SqrtPart < 0)
+        if (SqrtPart <= 0)
         {
             Debug.Log("No Real Values will be made");
             return;
@@ -126,12 +139,12 @@ public class Physics_Controller : MonoBehaviour
         float t1 = (-B + Mathf.Sqrt(SqrtPart)) / (2 * A);//-4.6538 to 0.05024
         float t2 = (-B - Mathf.Sqrt(SqrtPart)) / (2 * A);//-5.3464 to -1.3165
 
+        Debug.Log("t1: " + t1);
+        Debug.Log("t2: " + t2);
 
-        if (t1 > 1 || t1 < 0 && t2 > 1 || t2 < 0)
+        if (t1 > 1 || t1 < 0 || t2 > 1 || t2 < 0)
         {
             Debug.Log("Out of range, no collision");
-            Debug.Log("t1: " + t1);
-            Debug.Log("t2: " + t2);
             return;
         }
         
@@ -141,30 +154,39 @@ public class Physics_Controller : MonoBehaviour
             return;
         }
 
-        float CollisionNextFrame = 0;
+        float CollisionFrame = 0;
 
-        if (t1 < t2 && t1 > 0 && t1 < 1)
-        {
-            //|(Ball1Location + t1 * Ball1Velocity) - (Ball2Location + t1 * Ball2Velocity)| = SumOfRadii;
-            CollisionNextFrame = (TheLengthOfVector(Ball1Location) + TheLengthOfVector(Ball1Velocity) * t1) - (TheLengthOfVector(Ball2Location) + TheLengthOfVector(Ball2Velocity) * t1);
+        float Min = Mathf.Min(t1, t2);
 
-        }
-        else if(t2 > 0 && t2 < 1)
-        {
-            //|(Ball1Location + t2 * Ball1Velocity) - (Ball2Location + t2 * Ball2Velocity)| = SumOfRadii;
-            CollisionNextFrame = (TheLengthOfVector(Ball1Location) + TheLengthOfVector(Ball1Velocity) * t2) - (TheLengthOfVector(Ball2Location) + TheLengthOfVector(Ball2Velocity) * t2);
+        //if (t1 < t2 && t1 > 0 && t1 < 1)
+        //{
+        //    //|(Ball1Location + t1 * Ball1Velocity) - (Ball2Location + t1 * Ball2Velocity)| = SumOfRadii;
+        //    CollisionFrame = (TheLengthOfVector(Ball1Location) + TheLengthOfVector(Ball1Velocity) * t1) - (TheLengthOfVector(Ball2Location) + TheLengthOfVector(Ball2Velocity) * t1);
 
-        }
-       
+        //}
+        //else if(t2 > 0 && t2 < 1)
+        //{
+        //    //|(Ball1Location + t2 * Ball1Velocity) - (Ball2Location + t2 * Ball2Velocity)| = SumOfRadii;
+        //    CollisionFrame = (TheLengthOfVector(Ball1Location) + TheLengthOfVector(Ball1Velocity) * t2) - (TheLengthOfVector(Ball2Location) + TheLengthOfVector(Ball2Velocity) * t2);
 
-        if(CollisionNextFrame > SumOfRadii)
+        //}
+
+        CollisionFrame = TheLengthOfVector(Ball1Location) + Min * TheLengthOfVector(Ball1Velocity)  - TheLengthOfVector(Ball2Location) + Min * TheLengthOfVector(Ball2Velocity);
+
+        Debug.Log("CNF: " + CollisionFrame);
+
+        if (CollisionFrame > SumOfRadii)
         {
             Debug.Log("No collision");
             return;
         }
-
+        //ball1.Velocity *= 100;
+        //ball2.Velocity *= 100;
+        //ball1.OneMoarTime();
+        //ball2.OneMoarTime();
         ball1.Velocity = Vector3.zero;
         ball2.Velocity = Vector3.zero;
+        Stop = true;
         Debug.Log("Collision");
 
         //Debug.Log(" Hello: " + DistanceBetweenBalls);

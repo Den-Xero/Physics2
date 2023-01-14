@@ -15,6 +15,10 @@ public class Physics_Sphere : MonoBehaviour
         return transform.position;
     }
 
+    public void OneMoarTime()
+    {
+        Update();
+    }
 
     // Start is called before the first frame update
     void Start()
