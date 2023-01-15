@@ -116,13 +116,13 @@ public class Physics_Controller : MonoBehaviour
         Vector3 relativePosition = Ball1Location - Ball2Location;
 
 
-        //float A = (Deltaxv * Deltaxv) + (Deltayv * Deltayv) + (Deltazv * Deltazv);//100
-        //float B = (2 * Deltaxp * Deltaxv) + (2 * Deltayp * Deltayv) + (2 * Deltazp * Deltazv);//1000
-        //float C = (Deltaxp * Deltaxp) + (Deltayp * Deltayp) + (Deltazp * Deltazp) - (SumOfRadii * SumOfRadii);//2488
+        float A = (Deltaxv * Deltaxv) + (Deltayv * Deltayv) + (Deltazv * Deltazv);//100
+        float B = (2 * Deltaxp * Deltaxv) + (2 * Deltayp * Deltayv) + (2 * Deltazp * Deltazv);//1000
+        float C = (Deltaxp * Deltaxp) + (Deltayp * Deltayp) + (Deltazp * Deltazp) - (SumOfRadii * SumOfRadii);//2488
 
-        float A = DotProduct(relativeVelocity, relativeVelocity);
-        float B = DotProduct(relativeVelocity * 2, relativePosition * 2);
-        float C = DotProduct(relativePosition, relativePosition) - (SumOfRadii * SumOfRadii);
+        //float A = DotProduct(relativeVelocity, relativeVelocity);
+        //float B = DotProduct(relativeVelocity * 2, relativePosition * 2);
+        //float C = DotProduct(relativePosition, relativePosition) - (SumOfRadii * SumOfRadii);
 
         Debug.Log("A: " + A);
         Debug.Log("B: " + B);
@@ -142,21 +142,36 @@ public class Physics_Controller : MonoBehaviour
         Debug.Log("t1: " + t1);
         Debug.Log("t2: " + t2);
 
-        if (t1 > 1 || t1 < 0 || t2 > 1 || t2 < 0)
-        {
-            Debug.Log("Out of range, no collision");
-            return;
-        }
-        
+        float Min = Mathf.Min(t1, t2);
+        float Max = Mathf.Max(t1, t2);
+
+        //if (t1 > 1 || t1 < 0 || t2 > 1 || t2 < 0)
+        //{
+        //    Debug.Log("Out of range, no collision");
+        //    return;
+        //}
+
         if (t1 == t2)
         {
             Debug.Log("barely touch, no collision");
             return;
         }
 
-        float CollisionFrame = 0;
+        if (Min > 0 && Min <= Time.fixedDeltaTime)
+        {
+            ball1.transform.position += Ball1Velocity * Min;
+            ball2.transform.position += Ball2Velocity * Min;
+            ball1.Velocity = Vector3.zero;
+            ball2.Velocity = Vector3.zero;
+            Stop = true;
+            Debug.Log("Collision");
+        }
 
-        float Min = Mathf.Min(t1, t2);
+        
+
+        //float CollisionFrame = 0;
+
+        
 
         //if (t1 < t2 && t1 > 0 && t1 < 1)
         //{
@@ -171,23 +186,17 @@ public class Physics_Controller : MonoBehaviour
 
         //}
 
-        CollisionFrame = TheLengthOfVector(Ball1Location) + Min * TheLengthOfVector(Ball1Velocity)  - TheLengthOfVector(Ball2Location) + Min * TheLengthOfVector(Ball2Velocity);
+        //CollisionFrame = TheLengthOfVector(Ball1Location) + Min * TheLengthOfVector(Ball1Velocity)  - TheLengthOfVector(Ball2Location) + Min * TheLengthOfVector(Ball2Velocity);
 
-        Debug.Log("CNF: " + CollisionFrame);
+        //Debug.Log("CNF: " + CollisionFrame);
 
-        if (CollisionFrame > SumOfRadii)
-        {
-            Debug.Log("No collision");
-            return;
-        }
-        //ball1.Velocity *= 100;
-        //ball2.Velocity *= 100;
-        //ball1.OneMoarTime();
-        //ball2.OneMoarTime();
-        ball1.Velocity = Vector3.zero;
-        ball2.Velocity = Vector3.zero;
-        Stop = true;
-        Debug.Log("Collision");
+        //if (CollisionFrame > SumOfRadii)
+        //{
+        //    Debug.Log("No collision");
+        //    return;
+        //}
+        
+        
 
         //Debug.Log(" Hello: " + DistanceBetweenBalls);
 
@@ -294,7 +303,7 @@ public class Physics_Controller : MonoBehaviour
         {
             //Velocity needed to hit plane
             Vector3 VelocityToHitBallVector = BallVelocity / TheLengthOfVector(BallVelocity) * VelocityNeeded;
-
+            ball.transform.position += BallVelocity * Time.fixedDeltaTime;
             ball.Velocity = Vector3.zero;
             Debug.Log("Collision");
         }
@@ -348,6 +357,7 @@ public class Physics_Controller : MonoBehaviour
             Vector3 VelocityToHitBallVector = MovingBallVelocity / TheLengthOfVector(MovingBallVelocity) * VelocityNeedToHitBall;
 
             //Does aftermath code from balls colliding.
+            ball1.transform.position += MovingBallVelocity * Time.fixedDeltaTime;
             ball1.Velocity = Vector3.zero; 
             Debug.Log("Collision");  
         }
