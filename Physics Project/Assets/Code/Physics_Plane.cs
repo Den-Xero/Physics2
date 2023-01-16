@@ -14,7 +14,7 @@ public class Physics_Plane : MonoBehaviour
 
     public Vector3 GetNormal()
     {
-        return transform.forward;
+        return transform.up;
     }
 
     public Vector3 GetP1Pos()
