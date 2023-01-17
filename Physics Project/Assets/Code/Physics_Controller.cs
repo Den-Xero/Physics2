@@ -30,17 +30,39 @@ public class Physics_Controller : MonoBehaviour
         return c;
     }
 
-    Vector3 GetDistances(Physics_Sphere ball1, Physics_Sphere ball2)
+    Vector3 VectorDivideVector(Vector3 a, Vector3 b)
     {
-        Vector3 Ball1Location = ball1.GetLocation();
-        Vector3 Ball2Location = ball2.GetLocation();
+        Vector3 c = new Vector3(a.x / b.x, a.y / b.y, a.z / b.z);
+        Debug.Log("c: " + c);
+        if(c.x != c.x)
+        {
+            c.x = 0;
+            Debug.Log("x changed");
+        }
+        if(c.y != c.y)
+        {
+            c.y = 0;
+            Debug.Log("y changed");
+        }
+        if(c.z != c.z)
+        {
+            c.z = 0;
+            Debug.Log("z changed");
+        }
+        return c;
+    }
+
+    Vector3 GetDistances(Physics_Sphere Ball1, Physics_Sphere Ball2)
+    {
+        Vector3 Ball1Location = Ball1.GetLocation();
+        Vector3 Ball2Location = Ball2.GetLocation();
         return Ball1Location - Ball2Location;  
     }
 
-    float GetSumOFRadii(Physics_Sphere ball1, Physics_Sphere ball2)
+    float GetSumOFRadii(Physics_Sphere Ball1, Physics_Sphere Ball2)
     {
-        float RadiiBall1 = ball1.Radius;
-        float RadiiBall2 = ball2.Radius;
+        float RadiiBall1 = Ball1.Radius;
+        float RadiiBall2 = Ball2.Radius;
         return RadiiBall1 + RadiiBall2;
     }
 
@@ -75,16 +97,16 @@ public class Physics_Controller : MonoBehaviour
         }
 
     }
-    void CollisionMovingSphere(Physics_Sphere ball1, Physics_Sphere ball2)
+    void CollisionMovingSphere(Physics_Sphere Ball1, Physics_Sphere Ball2)
     {
-        //getting the two balls locations.
-        Vector3 Ball1Location = ball1.GetLocation();
-        Vector3 Ball2Location = ball2.GetLocation();
-        //gets the balls velocity.
-        Vector3 Ball1Velocity = ball1.Velocity;
-        Vector3 Ball2Velocity = ball2.Velocity;
-        //getting balls radius and then adding them together to get min distance for collision.
-        float SumOfRadii = GetSumOFRadii(ball1, ball2);
+        //getting the two Balls locations.
+        Vector3 Ball1Location = Ball1.GetLocation();
+        Vector3 Ball2Location = Ball2.GetLocation();
+        //gets the Balls velocity.
+        Vector3 Ball1Velocity = Ball1.Velocity;
+        Vector3 Ball2Velocity = Ball2.Velocity;
+        //getting Balls radius and then adding them together to get min distance for collision.
+        float SumOfRadii = GetSumOFRadii(Ball1, Ball2);
 
         //|(Ball1Location + tBall1Velocity) - (Ball2Location + tBall2Veloity)| = SumOfRadii
         //Ball1Location = a1i + b1j + c1k, Ball2Location = a2i + b2j + c2k, Ball1Velocity = d1i + e1j + f1k, Ball2Velocity = d2i + e2j + f2k
@@ -142,105 +164,85 @@ public class Physics_Controller : MonoBehaviour
 
         if (Min > 0 && Min <= Time.fixedDeltaTime)
         {
-            ball1.transform.position += Ball1Velocity * Min;
-            ball2.transform.position += Ball2Velocity * Min;
-            ball1.Velocity = Vector3.zero;
-            ball2.Velocity = Vector3.zero;
-            Stop = true;
+            Ball1.transform.position += Ball1Velocity * Min;
+            Ball2.transform.position += Ball2Velocity * Min;
+            //Ball1.Velocity = Vector3.zero;
+            //Ball2.Velocity = Vector3.zero;
+            //Stop = true;
             Debug.Log("Collision");
+            TwoMovingSphereAfterMath(Ball1, Ball2);
         }
 
         
     }
 
-    void CollisionPlane(Physics_Sphere ball, Physics_Plane Plane)
+    void CollisionPlane(Physics_Sphere Ball, Physics_Plane Plane)
     {
-        Vector3 BallLocation = ball.GetLocation();
-        //Vector3 ArbitraryPoint = Plane.GetP1Pos();
+        Vector3 BallLocation = Ball.GetLocation();
         Vector3 ArbitraryPoint = Plane.GetLocation();
         Vector3 DistanceBetweenBallAndPlane = BallLocation  - ArbitraryPoint;
 
-        Vector3 BallVelocity = ball.Velocity;
-        float Radius = ball.Radius;
+        Vector3 BallVelocity = Ball.Velocity;
+        float Radius = Ball.Radius;
         Vector3 Normal = Plane.GetNormal();
 
         float AngleBetweenVelocityAndNegNormal = Mathf.Acos(DotProduct(-Normal, BallVelocity) / (TheLengthOfVector(-Normal) * TheLengthOfVector(BallVelocity)));
-        AngleBetweenVelocityAndNegNormal *= (Mathf.PI / 180);
-
-        Debug.Log("Angle0: " + AngleBetweenVelocityAndNegNormal);
 
         if (AngleBetweenVelocityAndNegNormal > 90) return;
 
-        Debug.Log("Heading to plane");
-
 
         float AngleBetweenNormalAndBall = Mathf.Acos(DotProduct(Normal, DistanceBetweenBallAndPlane) / (TheLengthOfVector(Normal) * TheLengthOfVector(DistanceBetweenBallAndPlane)));
-        //AngleBetweenNormalAndBall *= (Mathf.PI / 180);
 
 
-        float AngleBetweenPlaneAndDistance = 90 - Mathf.Abs(AngleBetweenNormalAndBall);
+        float AngleBetweenPlaneAndDistance = (90 * (Mathf.PI / 180)) - AngleBetweenNormalAndBall;
 
-        
-        //AngleBetweenPlaneAndDistance *= (Mathf.PI / 180);
+
         Debug.Log("Angle1: " + AngleBetweenNormalAndBall);
         Debug.Log("Angle2: " + AngleBetweenPlaneAndDistance);
 
-        //if (Mathf.Abs(AngleBetweenNormalAndBall) + Mathf.Abs(AngleBetweenPlaneAndDistance) != 90) Debug.LogError("Failed to make 90");
 
         float ClosestDistanceBetweenSphereAndPlane = Mathf.Sin(AngleBetweenPlaneAndDistance) * TheLengthOfVector(DistanceBetweenBallAndPlane);
 
         Debug.Log("Closest: " + ClosestDistanceBetweenSphereAndPlane);
 
-        if (Mathf.Abs(ClosestDistanceBetweenSphereAndPlane) > Radius)
-        {
-            Debug.Log("No collision");
-            return;
-        }
-
         float VelocityNeeded = (ClosestDistanceBetweenSphereAndPlane - Radius ) / Mathf.Cos(AngleBetweenVelocityAndNegNormal);
-
+        
+        Debug.Log("Vel: " + TheLengthOfVector(BallVelocity));
+        Debug.Log("Delta: " + Time.fixedDeltaTime);
         Debug.Log("Velocity Needed: " + VelocityNeeded);
+        Debug.Log("Next move: " + Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)));
 
-        //Velocity with out excess.
-        float VelocityNeedToHitPlane = Mathf.Cos(AngleBetweenVelocityAndNegNormal) * TheLengthOfVector(DistanceBetweenBallAndPlane) - VelocityNeeded;
-
-        Debug.Log("Velocity Needed to hit: " + VelocityNeedToHitPlane);
-
-        //checks to see if Velocity need is less then the Velocity of the ball, if soo ball collides.
         if (Mathf.Abs(VelocityNeeded) <= Mathf.Abs(TheLengthOfVector(BallVelocity * Time.fixedDeltaTime)))
         {
-            //Velocity needed to hit plane
-            //Vector3 VelocityToHitBallVector = BallVelocity / TheLengthOfVector(BallVelocity) * VelocityNeeded;
-            ball.transform.position += BallVelocity * Time.fixedDeltaTime;
-            ball.Velocity = Vector3.zero;
+            Ball.transform.position += BallVelocity.normalized * VelocityNeeded;
+            //Stop = true;
             Debug.Log("Collision");
+            SphereToPlaneAfterMath(Ball, Normal);
         }
-
 
     }
 
-
-    void CollisionStationarySphere(Physics_Sphere ball1, Physics_Sphere ball2)
+    void CollisionStationarySphere(Physics_Sphere Ball1, Physics_Sphere Ball2)
     {
-        //getting the two balls locations then seeing how far they are from each other.
-        Vector3 DistanceBetweenBalls = GetDistances(ball1, ball2);
-        Debug.Log(" Hello: " + DistanceBetweenBalls);
+        //getting the two Balls locations then seeing how far they are from each other.
+        Vector3 DistanceBetweenBalls = GetDistances(Ball1, Ball2);
+        //Debug.Log(" Hello: " + DistanceBetweenBalls);
 
-        //getting balls radius and then adding them together to get min distance for collision.
-        float SumOfRadii = GetSumOFRadii(ball1, ball2);
+        //getting Balls radius and then adding them together to get min distance for collision.
+        float SumOfRadii = GetSumOFRadii(Ball1, Ball2);
 
-        //gets the moving balls velocity.
-        Vector3 MovingBallVelocity = ball1.Velocity;
+        //gets the moving Balls velocity.
+        Vector3 MovingBallVelocity = Ball1.Velocity;
 
-        Debug.Log("Code working");
+        //Debug.Log("Code working");
 
-        //calculating the angle between the distance between the two balls and the moving balls velocity.
+        //calculating the angle between the distance between the two Balls and the moving Balls velocity.
         float AngleBetweenDistanceAndVelocity = Mathf.Acos(DotProduct(MovingBallVelocity, DistanceBetweenBalls) / (TheLengthOfVector(MovingBallVelocity) * TheLengthOfVector(DistanceBetweenBalls)));
 
         //Degrees to radians
         AngleBetweenDistanceAndVelocity *= (Mathf.PI / 180);
 
-        //Getting the shortest distance between the balls.
+        //Getting the shortest distance between the Balls.
         float ShortestDistanceThisFrame = Mathf.Sin(AngleBetweenDistanceAndVelocity) * TheLengthOfVector(DistanceBetweenBalls);
 
         //If shortest distance is bigger then the max distance for collision then there is no collision possible. 
@@ -250,25 +252,111 @@ public class Physics_Controller : MonoBehaviour
             return; 
         }
 
-        Debug.Log("Collision possible");
+        //Debug.Log("Collision possible");
         //Excess velocity.
-        float ExcessVelocity = Mathf.Sqrt(Mathf.Pow((ball1.Radius + ball2.Radius), 2) - Mathf.Pow(ShortestDistanceThisFrame, 2));
+        float ExcessVelocity = Mathf.Sqrt(Mathf.Pow((Ball1.Radius + Ball2.Radius), 2) - Mathf.Pow(ShortestDistanceThisFrame, 2));
 
         //Velocity with out excess.
         float VelocityNeedToHitBall = Mathf.Cos(AngleBetweenDistanceAndVelocity) * TheLengthOfVector(DistanceBetweenBalls) - ExcessVelocity;
 
 
-        //checks to see if Velocity need is less then the Velocity of the ball, if soo ball collides.
+        //checks to see if Velocity need is less then the Velocity of the Ball, if soo Ball collides.
         if (Mathf.Abs(VelocityNeedToHitBall) < Mathf.Abs(TheLengthOfVector(MovingBallVelocity * Time.fixedDeltaTime))) 
         {
-            //Velocity needed to hit ball
-            Vector3 VelocityToHitBallVector = MovingBallVelocity / TheLengthOfVector(MovingBallVelocity) * VelocityNeedToHitBall;
-
-            //Does aftermath code from balls colliding.
-            ball1.transform.position += MovingBallVelocity * Time.fixedDeltaTime;
-            ball1.Velocity = Vector3.zero; 
-            Debug.Log("Collision");  
+            //Does aftermath code from Balls colliding.
+            //Ball1.transform.position += MovingBallVelocity * Time.fixedDeltaTime;
+            //Ball1.Velocity = Vector3.zero;
+            //Stop = true;
+            Debug.Log("Collision");
+            SphereToStationarySphereAfterMath(Ball1, Ball2);
         }
      
     }
+
+    void SphereToPlaneAfterMath(Physics_Sphere Ball, Vector3 Normal)
+    {
+        Vector3 VelocityMinus = Ball.Velocity;
+        Vector3 VelocityMinusHat = VelocityMinus / TheLengthOfVector(VelocityMinus);
+        Vector3 VelocityPlusHat = 2 * Normal * DotProduct(Normal, -VelocityMinusHat) + VelocityMinusHat;
+        Vector3 VelocityPlus = VelocityPlusHat * TheLengthOfVector(VelocityMinus);
+        Ball.Velocity = VelocityPlus;
+        Ball.transform.position += VelocityPlusHat * 0.1f;
+    }
+
+    void SphereToStationarySphereAfterMath(Physics_Sphere Ball1, Physics_Sphere Ball2)
+    {
+        Vector3 Velocity1 = Ball1.Velocity;
+        Vector3 CentreOfSphere2 = Ball2.GetLocation();
+        Vector3 VelocityDirection = VectorDivideVector(Velocity1, Velocity1);
+        if (Velocity1.x < 0)
+        {
+            VelocityDirection.x = -VelocityDirection.x;
+        }
+        if(Velocity1.y < 0)
+        {
+            VelocityDirection.y = -VelocityDirection.y;
+        }
+        if(Velocity1.z < 0)
+        {
+            VelocityDirection.z = -VelocityDirection.z;
+        }
+        VelocityDirection *= Ball1.Radius;
+        Vector3 CollisionPoint = Ball1.GetLocation() + VelocityDirection;
+        Vector3 DirectionOfForce = CentreOfSphere2 - CollisionPoint;
+
+        float AngleBetweenVelocityandForce = Mathf.Acos(DotProduct(Velocity1, DirectionOfForce) / (TheLengthOfVector(Velocity1) * TheLengthOfVector(DirectionOfForce)));
+        //AngleBetweenVelocityandForce *= (Mathf.PI / 180);
+
+        Vector3 Velocity2 = Mathf.Cos(AngleBetweenVelocityandForce) * DirectionOfForce;
+        Velocity1 -= Velocity2;
+        Ball1.Velocity = Velocity1;
+        Ball2.Velocity = Velocity2;
+        //Ball1.transform.position += Velocity1.normalized * 0.1f;
+        //Ball2.transform.position += Velocity2.normalized * 0.1f;
+    }
+
+    void TwoMovingSphereAfterMath(Physics_Sphere Ball1, Physics_Sphere Ball2)
+    {
+        Vector3 Velocity1 = Ball1.Velocity;
+        Vector3 Velocity2 = Ball2.Velocity;
+        Vector3 CentreOfSphere1 = Ball1.GetLocation();
+        Vector3 CentreOfSphere2 = Ball2.GetLocation();
+        Vector3 VelocityDirection = VectorDivideVector(Velocity1, Velocity2);
+        if (Velocity1.x < 0 && Velocity2.x < 0)
+        {
+            VelocityDirection.x = -VelocityDirection.x;
+        }
+        if (Velocity1.y < 0 && Velocity2.y < 0)
+        {
+            VelocityDirection.y = -VelocityDirection.y;
+        }
+        if (Velocity1.z < 0 && Velocity2.z < 0)
+        {
+            VelocityDirection.z = -VelocityDirection.z;
+        }
+        VelocityDirection *= Ball1.Radius;
+        Vector3 CollisionPoint = Ball1.GetLocation() + VelocityDirection;
+        Vector3 Impulse1 = (CentreOfSphere2 - CentreOfSphere1) / (TheLengthOfVector(CentreOfSphere2) - TheLengthOfVector(CentreOfSphere1));
+        Vector3 Impulse2 = (CentreOfSphere1 - CentreOfSphere2) / (TheLengthOfVector(CentreOfSphere1) - TheLengthOfVector(CentreOfSphere2));
+
+        Vector3 DirectionOfForce1 = CentreOfSphere1 - CollisionPoint;
+        Vector3 DirectionOfForce2 = CentreOfSphere2 - CollisionPoint;
+
+        float AngleBetweenVelocityandForce1 = Mathf.Acos(DotProduct(Velocity1, DirectionOfForce1) / (TheLengthOfVector(Velocity1) * TheLengthOfVector(DirectionOfForce1)));
+        float AngleBetweenVelocityandForce2 = Mathf.Acos(DotProduct(Velocity2, DirectionOfForce2) / (TheLengthOfVector(Velocity2) * TheLengthOfVector(DirectionOfForce2)));
+        //AngleBetweenVelocityandForce *= (Mathf.PI / 180);
+
+        float StrengthOfForce1 = Mathf.Cos(AngleBetweenVelocityandForce1) * TheLengthOfVector(Velocity1);
+        float StrengthOfForce2 = Mathf.Cos(AngleBetweenVelocityandForce2) * TheLengthOfVector(Velocity2);
+
+        Velocity1 += StrengthOfForce1 * Impulse1 - StrengthOfForce2 * Impulse2;
+        Velocity2 += StrengthOfForce2* Impulse2 -StrengthOfForce1 * Impulse1;
+
+
+        Ball1.Velocity = Velocity1;
+        Ball2.Velocity = Velocity2;
+        //Ball1.transform.position += Velocity1.normalized * 0.1f;
+        //Ball2.transform.position += Velocity2.normalized * 0.1f;
+    }
 }
+ 
